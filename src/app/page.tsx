@@ -1,35 +1,25 @@
-"use client"
+// src/app/page.tsx
+import VideoPlayer from '../components/VideoPlayer';
+import path from 'path';
+import fs from 'fs';
 
-import { useState, useEffect } from "react";
-import VideoPlayer from "../app/components/VideoPlayer";
+const HomePage = async () => {
+  const videosDirectory = path.join(process.cwd(), 'public/Videos/videos_mkx_embedsub');
 
-interface Video {
-    id: string;
-    name: string;
-    webContentLink: string;
-}
+  let videoFiles: string[] = [];
+  try {
+    const files = fs.readdirSync(videosDirectory);
+    videoFiles = files.filter((file) => file.endsWith('.mkv')).map((file) => `/Videos/videos_mkx_embedsub/${encodeURIComponent(file)}`);
+  } catch (error) {
+    console.error('Error reading video files:', error);
+  }
 
-export default function Home() {
-    const [videos, setVideos] = useState<Video[]>([]);
+  return (
+    <div>
+      <h1>My Video Playlist</h1>
+      <VideoPlayer videos={videoFiles} />
+    </div>
+  );
+};
 
-    useEffect(() => {
-        const fetchVideos = async () => {
-            try {
-                const response = await fetch("/api/drive-files");
-                const data = await response.json();
-                setVideos(data);
-            } catch (error) {
-                console.error("Error fetching videos:", error);
-            }
-        };
-
-        fetchVideos();
-    }, []);
-
-    return (
-        <div>
-            <h1>Google Drive Playlist</h1>
-            <VideoPlayer videos={videos} />
-        </div>
-    );
-}
+export default HomePage;
