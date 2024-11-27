@@ -23,4 +23,20 @@ body {
 .bodyStyle {
   margin: 0;
   height: 100vh;
+  background-image: url("/background/Resting.jpg"); /* Corrected path */
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  z-index: 0; /* Added to establish stacking context */
+}
+
+.bodyStyle::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay */
+  z-index: -1;
 }

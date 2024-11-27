@@ -43,5 +43,13 @@
 
 .playlistInfo {
   font-size: 16px;
-  color: #333;
+  color: #ffffff; /* Set font color to white */
+  position: relative;
+  z-index: 1; /* Ensure it displays above the background overlay */
+  font-weight: bold; /* Làm đậm chữ */
+}
+
+.volumeSlider {
+  width: 100px;
+  cursor: pointer;
 }
