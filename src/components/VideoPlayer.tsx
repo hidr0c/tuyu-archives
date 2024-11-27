@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactPlayer from 'react-player';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faPause, faStepForward, faRandom, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faPause, faStepForward, faRandom, faSyncAlt, faStepBackward } from '@fortawesome/free-solid-svg-icons';
 import styles from './VideoPlayer.module.css';
 
 interface VideoPlayerProps {
@@ -24,6 +24,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videos }) => {
 
     const handleNext = () => {
         setCurrentIndex((prevIndex) => (prevIndex + 1) % playlist.length);
+    };
+
+    const handleBack = () => {
+        setCurrentIndex((prevIndex) => (prevIndex - 1 + playlist.length) % playlist.length);
     };
 
     const handleShuffle = () => {
@@ -75,14 +79,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videos }) => {
                 />
             </div>
             <div className={styles.controls}>
+                <button onClick={toggleLoop} className={styles.button}>
+                    <FontAwesomeIcon icon={faSyncAlt} color={isLoop ? 'blue' : 'black'} />
+                </button>
+                <button onClick={handleBack} className={styles.button}>
+                    <FontAwesomeIcon icon={faStepBackward} />
+                </button>
                 <button onClick={handlePlayPause} className={styles.button}>
                     <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} />
                 </button>
                 <button onClick={handleNext} className={styles.button}>
                     <FontAwesomeIcon icon={faStepForward} />
-                </button>
-                <button onClick={toggleLoop} className={styles.button}>
-                    <FontAwesomeIcon icon={faSyncAlt} color={isLoop ? 'blue' : 'black'} />
                 </button>
                 <button onClick={handleShuffle} className={styles.button}>
                     <FontAwesomeIcon icon={faRandom} />
