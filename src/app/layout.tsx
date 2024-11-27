@@ -8,7 +8,7 @@ interface RootLayoutProps {
 const RootLayout = ({ children }: RootLayoutProps) => {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="bodyStyle">{children}</body>
     </html>
   );
 };

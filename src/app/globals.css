@@ -19,3 +19,8 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.bodyStyle {
+  margin: 0;
+  height: 100vh;
+}
