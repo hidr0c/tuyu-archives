@@ -24,7 +24,6 @@ const HomePage = async () => {
 
   return (
     <div>
-      <h1>My Video Playlist</h1>
       <VideoPlayer videos={videoFiles} />
     </div>
   );

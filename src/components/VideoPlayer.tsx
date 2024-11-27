@@ -15,6 +15,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videos }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isLoop, setIsLoop] = useState(false);
     const [isPlaying, setIsPlaying] = useState(true);
+    const [volume, setVolume] = useState(1); // Thêm trạng thái âm lượng
     const playerRef = useRef<ReactPlayer>(null);
 
     useEffect(() => {
@@ -76,6 +77,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videos }) => {
                     onEnded={handleEnded}
                     width="100%"
                     height="100%"
+                    volume={volume}
                 />
             </div>
             <div className={styles.controls}>
@@ -94,6 +96,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videos }) => {
                 <button onClick={handleShuffle} className={styles.button}>
                     <FontAwesomeIcon icon={faRandom} />
                 </button>
+
+                {/* Thêm thanh trượt âm lượng */}
+                <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={volume}
+                    onChange={(e) => setVolume(parseFloat(e.target.value))}
+                    className={styles.volumeSlider}
+                />
             </div>
             <div className={styles.playlistInfo}>
                 Now Playing: {getDisplayName(playlist[currentIndex])}
