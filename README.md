@@ -4,6 +4,7 @@ After Pusu decided to delete every MV related to Pusu, I came up with the idea o
 - [ ] Redesign the UX/UI.
 - [ ] Display song titles in Kanji.
 - [ ] Create a playback icon.
-- [ ] Add a database to remove the need for a 1.8GB repo.
+- [ ] <s> Add a database to remove the need for a 1.8GB repo. </s>
+- [ ] Importing google drive API
 - [ ] Deploy to website
 
