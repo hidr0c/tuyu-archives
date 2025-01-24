@@ -2,6 +2,7 @@
 import VideoPlayer from '../components/VideoPlayer';
 import path from 'path';
 import fs from 'fs';
+import useSWR from 'swr';
 
 const shuffleArray = (array: string[]) => {
   return array.sort(() => Math.random() - 0.5);
