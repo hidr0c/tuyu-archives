@@ -1,9 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import ReactPlayer from 'react-player';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faPause, faStepForward, faRandom, faSyncAlt, faStepBackward } from '@fortawesome/free-solid-svg-icons';
 import styles from './VideoPlayer.module.css';
 
 interface VideoPlayerProps {
@@ -15,26 +13,19 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videos }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isLoop, setIsLoop] = useState(false);
     const [isPlaying, setIsPlaying] = useState(true);
-    const [volume, setVolume] = useState(1); // Thêm trạng thái âm lượng
-    const playerRef = useRef<ReactPlayer>(null);
+    const [volume, setVolume] = useState(1);
 
     useEffect(() => {
-        setPlaylist(videos); // Use shuffled videos from props
+        setPlaylist(videos);
         setCurrentIndex(0);
     }, [videos]);
 
     const handleNext = () => {
-        setCurrentIndex((prevIndex) => (prevIndex + 1) % playlist.length);
+        setCurrentIndex((prev) => (prev + 1) % playlist.length);
     };
 
     const handleBack = () => {
-        setCurrentIndex((prevIndex) => (prevIndex - 1 + playlist.length) % playlist.length);
-    };
-
-    const handleShuffle = () => {
-        const shuffled = [...playlist].sort(() => Math.random() - 0.5);
-        setPlaylist(shuffled);
-        setCurrentIndex(0);
+        setCurrentIndex((prev) => (prev - 1 + playlist.length) % playlist.length);
     };
 
     const toggleLoop = () => {
@@ -47,10 +38,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videos }) => {
 
     const handleEnded = () => {
         if (isLoop) {
-            // Replay the current video
-            setCurrentIndex((prevIndex) => prevIndex);
+            setCurrentIndex((prev) => prev);
         } else {
-            // Move to the next video
             handleNext();
         }
     };
@@ -59,45 +48,29 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videos }) => {
         return <div>Loading videos...</div>;
     }
 
-    const getDisplayName = (url: string) => {
-        const parts = url.split('/');
-        const filename = parts[parts.length - 1];
-        const nameWithoutExt = filename.replace('.mkv', '').replace('.mp4', '');
-        return decodeURIComponent(nameWithoutExt);
-    };
-
     return (
         <div className={styles.videoPlayerContainer}>
             <div className={styles.playerWrapper}>
                 <ReactPlayer
-                    ref={playerRef}
                     url={playlist[currentIndex]}
                     playing={isPlaying}
-                    controls={false} // Disable default controls
+                    loop={isLoop}
+                    volume={volume}
                     onEnded={handleEnded}
+                    controls
                     width="100%"
                     height="100%"
-                    volume={volume}
                 />
             </div>
             <div className={styles.controls}>
-                <button onClick={toggleLoop} className={styles.button}>
-                    <FontAwesomeIcon icon={faSyncAlt} color={isLoop ? 'blue' : 'black'} />
+                <button className={styles.button} onClick={handleBack}>Back</button>
+                <button className={styles.button} onClick={handlePlayPause}>
+                    {isPlaying ? 'Pause' : 'Play'}
                 </button>
-                <button onClick={handleBack} className={styles.button}>
-                    <FontAwesomeIcon icon={faStepBackward} />
+                <button className={styles.button} onClick={handleNext}>Next</button>
+                <button className={styles.button} onClick={toggleLoop}>
+                    {isLoop ? 'Loop On' : 'Loop Off'}
                 </button>
-                <button onClick={handlePlayPause} className={styles.button}>
-                    <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} />
-                </button>
-                <button onClick={handleNext} className={styles.button}>
-                    <FontAwesomeIcon icon={faStepForward} />
-                </button>
-                <button onClick={handleShuffle} className={styles.button}>
-                    <FontAwesomeIcon icon={faRandom} />
-                </button>
-
-                {/* Thêm thanh trượt âm lượng */}
                 <input
                     type="range"
                     min="0"
@@ -107,9 +80,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videos }) => {
                     onChange={(e) => setVolume(parseFloat(e.target.value))}
                     className={styles.volumeSlider}
                 />
-            </div>
-            <div className={styles.playlistInfo}>
-                Now Playing: {getDisplayName(playlist[currentIndex])}
             </div>
         </div>
     );

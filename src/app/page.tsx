@@ -1,27 +1,25 @@
-// src/app/page.tsx
+"use client";
 import VideoPlayer from '../components/VideoPlayer';
-import path from 'path';
-import fs from 'fs';
-import useSWR from 'swr';
+import useSWR from 'swr'; // Named import for SWR v2.x
 
-const shuffleArray = (array: string[]) => {
-  return array.sort(() => Math.random() - 0.5);
-};
+const fetcher = async (url: string) => fetch(url).then(res => res.json());
 
-const HomePage = async () => {
-  const videosDirectory = path.join(process.cwd(), 'public/Videos/videos_mkx_embedsub');
+interface Video {
+  name: string;
+  url: string;
+}
 
-  let videoFiles: string[] = [];
-  try {
-    const files = fs.readdirSync(videosDirectory);
-    videoFiles = files
-      .filter((file) => file.endsWith('.mkv'))
-      .map((file) => `/Videos/videos_mkx_embedsub/${encodeURIComponent(file)}`);
+interface VideosResponse {
+  videos: Video[];
+}
 
-    videoFiles = shuffleArray(videoFiles); // Shuffle on server side
-  } catch (error) {
-    console.error('Error reading video files:', error);
-  }
+const HomePage = () => {
+  const { data, error } = useSWR<VideosResponse>('/api/videos', fetcher);
+
+  if (error) return <div>Error loading videos</div>;
+  if (!data) return <div>Loading...</div>;
+
+  const videoFiles = data.videos.map((file) => file.url);
 
   return (
     <div>
