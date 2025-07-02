@@ -1,0 +1,226 @@
+/* Google Drive Player Styles */
+.googleDrivePlayer {
+  min-height: 100vh;
+  padding: 20px;
+  background: linear-gradient(
+    135deg,
+    rgba(10, 10, 20, 0.95),
+    rgba(20, 20, 40, 0.95),
+    rgba(30, 30, 60, 0.95)
+  );
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: rgba(15, 15, 25, 0.3);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.title {
+  color: white;
+  font-size: 48px;
+  font-weight: 700;
+  margin: 0 0 15px 0;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+  background: linear-gradient(135deg, #ffffff, #00ddff, #0099cc);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% 200%;
+  animation: titleGradient 3s ease-in-out infinite;
+}
+
+@keyframes titleGradient {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.stats {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 15px;
+}
+
+.stat {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 16px;
+  padding: 8px 20px;
+  background: rgba(0, 170, 255, 0.1);
+  border: 1px solid rgba(0, 170, 255, 0.3);
+  border-radius: 25px;
+  backdrop-filter: blur(5px);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Status Container (Loading, Error, Empty) */
+.statusContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  background: linear-gradient(
+    135deg,
+    rgba(10, 10, 20, 0.95),
+    rgba(20, 20, 40, 0.95),
+    rgba(30, 30, 60, 0.95)
+  );
+}
+
+.statusContent {
+  text-align: center;
+  max-width: 500px;
+  padding: 40px;
+  background: rgba(15, 15, 25, 0.4);
+  border-radius: 25px;
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+}
+
+.statusTitle {
+  color: white;
+  font-size: 32px;
+  font-weight: 600;
+  margin: 20px 0 15px 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.statusMessage {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0 0 30px 0;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Loading Spinner */
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-left: 4px solid #00aaff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Status Icons */
+.errorIcon,
+.emptyIcon {
+  font-size: 80px;
+  margin-bottom: 20px;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8));
+}
+
+.errorIcon {
+  color: #ff4444;
+}
+
+.emptyIcon {
+  color: #ffaa44;
+}
+
+/* Retry Button */
+.retryButton {
+  background: linear-gradient(135deg, #00aaff, #0088cc);
+  border: none;
+  color: white;
+  padding: 15px 30px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 20px rgba(0, 170, 255, 0.3);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.retryButton:hover {
+  background: linear-gradient(135deg, #00ccff, #00aadd);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 170, 255, 0.4);
+}
+
+.retryButton:active {
+  transform: translateY(0);
+}
+
+/* Help Text */
+.helpText {
+  margin-top: 30px;
+  text-align: left;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.helpText h3 {
+  color: white;
+  font-size: 18px;
+  margin: 0 0 15px 0;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.helpText ol {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.helpText li {
+  margin-bottom: 8px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .googleDrivePlayer {
+    padding: 10px;
+  }
+
+  .title {
+    font-size: 36px;
+  }
+
+  .stats {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .statusContent {
+    padding: 30px 20px;
+    margin: 10px;
+  }
+
+  .statusTitle {
+    font-size: 28px;
+  }
+
+  .helpText {
+    padding: 15px;
+  }
+}
