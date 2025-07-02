@@ -27,8 +27,10 @@ export default async function handler(
           "Missing Google Drive API configuration. Please check your environment variables.",
       });
     }
-
     const drive = google.drive({ version: "v3", auth: API_KEY });
+    // Log API configuration for debugging
+    console.log(`Using API Key: ${API_KEY ? "Configured" : "Missing"}`);
+    console.log(`Using Folder ID: ${FOLDER_ID}`);
 
     // Get all folders in the root directory
     const foldersResponse = await drive.files.list({
@@ -37,6 +39,23 @@ export default async function handler(
     });
 
     const folders = foldersResponse.data.files || [];
+    console.log(`Found ${folders.length} folders in root directory`);
+
+    if (folders.length === 0) {
+      console.log(
+        "No folders found. Checking if the folder ID exists or is accessible..."
+      );
+      try {
+        // Try to get info about the root folder itself
+        const folderInfo = await drive.files.get({
+          fileId: FOLDER_ID,
+          fields: "id,name,mimeType,trashed",
+        });
+        console.log("Root folder info:", folderInfo.data);
+      } catch (folderErr) {
+        console.error("Error checking root folder:", folderErr);
+      }
+    }
     const allVideos: VideoWithSubtitle[] = [];
 
     // Process each folder
@@ -134,7 +153,6 @@ export default async function handler(
       const bName = b.title || b.video;
       return aName.localeCompare(bName);
     });
-
     res.status(200).json({
       videos: allVideos,
       totalCount: allVideos.length,

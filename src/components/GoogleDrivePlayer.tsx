@@ -26,9 +26,7 @@ const GoogleDrivePlayer: React.FC<GoogleDrivePlayerProps> = ({
     const [videos, setVideos] = useState<Video[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [folders, setFolders] = useState<string[]>([]);
-
-    useEffect(() => {
+    const [folders, setFolders] = useState<string[]>([]); useEffect(() => {
         fetchVideos();
     }, [apiKey, folderId]);
 
@@ -36,6 +34,19 @@ const GoogleDrivePlayer: React.FC<GoogleDrivePlayerProps> = ({
         try {
             setLoading(true);
             setError(null);
+
+            // Check if API key and folder ID are provided
+            if (!apiKey || !folderId) {
+                console.error('Missing API key or folder ID');
+                setError('Missing Google Drive API configuration. Please check your .env.local file.');
+                setLoading(false);
+                return;
+            }
+
+            console.log('Fetching videos with API key and folder ID:', {
+                apiKey: apiKey?.substring(0, 5) + '...',
+                folderId: folderId
+            });
 
             const params = new URLSearchParams();
             if (apiKey) params.append('apiKey', apiKey);
@@ -49,6 +60,7 @@ const GoogleDrivePlayer: React.FC<GoogleDrivePlayerProps> = ({
             }
 
             const data = await response.json();
+            console.log('Fetched videos:', data.videos?.length || 0);
             setVideos(data.videos || []);
             setFolders(data.folders || []);
         } catch (err) {
@@ -86,15 +98,19 @@ const GoogleDrivePlayer: React.FC<GoogleDrivePlayerProps> = ({
                     <p className={styles.statusMessage}>{error}</p>
                     <button onClick={handleRetry} className={styles.retryButton}>
                         Try Again
-                    </button>
-                    <div className={styles.helpText}>
+                    </button>                    <div className={styles.helpText}>
                         <h3>Setup Instructions:</h3>
                         <ol>
                             <li>Create a Google Cloud Project</li>
                             <li>Enable the Google Drive API</li>
                             <li>Create an API key</li>
-                            <li>Set GOOGLE_DRIVE_API_KEY in your environment</li>
-                            <li>Set GOOGLE_DRIVE_FOLDER_ID to your main folder ID</li>
+                            <li>Create a .env.local file in the project root</li>
+                            <li>Add the following to your .env.local file:</li>
+                            <li style={{ color: '#00ddff' }}>NEXT_PUBLIC_GOOGLE_DRIVE_API_KEY=your_api_key</li>
+                            <li style={{ color: '#00ddff' }}>NEXT_PUBLIC_GOOGLE_DRIVE_FOLDER_ID=your_folder_id</li>
+                            <li style={{ color: '#00ddff' }}>GOOGLE_DRIVE_API_KEY=same_api_key</li>
+                            <li style={{ color: '#00ddff' }}>GOOGLE_DRIVE_FOLDER_ID=same_folder_id</li>
+                            <li>Restart the development server with npm run dev</li>
                         </ol>
                     </div>
                 </div>
