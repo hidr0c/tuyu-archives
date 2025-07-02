@@ -1,6 +1,6 @@
 # TUYU Archives - Quick Start Guide
 
-## 🚀 Quick Setup (5 minutes)
+## Quick Setup 
 
 ### Option 1: Local Videos Only
 1. ```bash
@@ -22,7 +22,7 @@
    ```
 6. Visit `http://localhost:3000/google-drive`
 
-## 🎮 Controls
+## Controls
 - **Click video**: Play/Pause
 - **Space**: Play/Pause
 - **F**: Fullscreen
@@ -30,7 +30,7 @@
 - **Search box**: Find videos
 - **Folder dropdown**: Filter by album
 
-## 📁 Google Drive Folder Structure
+## Google Drive Folder Structure
 ```
 Your Main Folder/
 ├── Album 1/
@@ -42,14 +42,3 @@ Your Main Folder/
     └── song.vtt
 ```
 
-## 🎯 Features
-✅ Modern UI with glassmorphism design  
-✅ Full Google Drive integration  
-✅ Subtitle support (VTT, SRT)  
-✅ Search & filter functionality  
-✅ Fullscreen with auto-hide controls  
-✅ Loop & shuffle modes  
-✅ Responsive design  
-✅ Artist/Title auto-parsing  
-
-Need help? Check the full README.md!
