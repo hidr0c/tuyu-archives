@@ -3,10 +3,10 @@
 
 Ok so Pusu decided not to delete their music but I will continue this project for fun
 # Little checklist:
-- [ ] Redesign the UX/UI.
+- [x] Redesign the UX/UI.
 - [x] Display song titles in Kanji.
 - [x] Create a playback icon.
 - [ ] <s> Add a database to remove the need for a 1.8GB repo. </s>
-- [ ] Importing Google Drive API
+- [x] Importing Google Drive API
 - [ ] Deploy to website
 
