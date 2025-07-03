@@ -8,3 +8,5 @@ Ok so Pusu decided not to delete their music but I will continue this project fo
 - [x] Importing Google Drive API
 - [x] Deploy to website
 
+Now I only need to decrease API time to get songs list and improve UI then it should be good?
+
