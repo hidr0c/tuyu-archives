@@ -10,3 +10,7 @@ Ok so Pusu decided not to delete their music but I will continue this project fo
 
 Now I only need to decrease API time to get songs list and improve UI then it should be good? oh and import subtitle also (because I still don't know how to do that xd)
 
+## 🌐 Website
+
+https://tuyu-archives-pied.vercel.app/
+
