@@ -5,7 +5,6 @@ Ok so Pusu decided not to delete their music but I will continue this project fo
 # Little checklist:
 - [x] Redesign the UX/UI.
 - [x] Create a playback icon.
-- [ ] <s> Add a database to remove the need for a 1.8GB repo. </s>
 - [x] Importing Google Drive API
-- [ ] Deploy to website
+- [x] Deploy to website
 
