@@ -45,10 +45,8 @@ export default function HomePage() {
     maxWidth: '1600px',
     margin: '0 auto',
     padding: '40px 20px',
-    background: 'linear-gradient(135deg, rgba(200, 200, 210, 0.5), rgba(190, 190, 200, 0.5))',
+    background: 'transparent',
     backdropFilter: 'blur(5px)',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-    border: '1px solid rgba(255, 255, 255, 0.4)',
     borderRadius: '15px',
     minHeight: '100vh'
   }}>

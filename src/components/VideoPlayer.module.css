@@ -149,11 +149,8 @@
   justify-content: center;
   align-items: center;
   padding: 12px 15px;
-  background: rgba(30, 30, 45, 0.4);
   border-radius: 20px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   gap: 25px; /* Increased gap to prevent muscle memory mistakes */
-  border: 1px solid rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(5px);
   order: 2; /* Move controls after progress bar */
 }
@@ -171,7 +168,6 @@
   align-items: center;
   padding: 0 15px;
   border-radius: 15px;
-  background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
