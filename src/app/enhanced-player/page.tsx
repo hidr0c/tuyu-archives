@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import GoogleDrivePlayer from '../../components/GoogleDrivePlayer';
 import EnhancedGoogleDrivePlayer from '../../components/EnhancedGoogleDrivePlayer';
+import GoogleDriveIframePlayer from '../../components/GoogleDriveIframePlayer';
 
-export default function GoogleDrivePage() {
+export default function EnhancedPlayerPage() {
     // Hardcode API key and folder ID from .env.local for client-side use
     const [apiKey, setApiKey] = useState<string>('AIzaSyCL9kMPcwLcJNSPozGYHSyH1s4Tv_Ef_mo');
     const [folderId, setFolderId] = useState<string>('1bKE6PHclPJhuo8MgzhuDFzK4pKgfC6Qy');
@@ -13,24 +13,9 @@ export default function GoogleDrivePage() {
 
     useEffect(() => {
         // Log environment variables for debugging
-        console.log("GoogleDrivePage mounted");
+        console.log("EnhancedPlayerPage mounted");
         console.log("API Key Available:", !!apiKey, "Length:", apiKey?.length || 0);
         console.log("Folder ID Available:", !!folderId, "Length:", folderId?.length || 0);
-
-        // Direct API test
-        const testApiAccess = async () => {
-            try {
-                console.log("Testing API access directly from page component");
-                const testUrl = `https://www.googleapis.com/drive/v3/files/${folderId}?key=${apiKey}&fields=id,name,mimeType`;
-                const response = await fetch(testUrl);
-                const data = await response.json();
-                console.log("API Test Result:", data);
-            } catch (error) {
-                console.error("API Test Error:", error);
-            }
-        };
-
-        testApiAccess();
     }, [apiKey, folderId]);
 
     return (
@@ -50,25 +35,8 @@ export default function GoogleDrivePage() {
                 fontSize: '2.5rem',
                 textShadow: '0 2px 10px rgba(0,0,0,0.3)'
             }}>
-                TUYU Video Archive
+                TUYU Video Archive - Enhanced Player
             </h1>
-
-            <div style={{ marginBottom: '30px', textAlign: 'center' }}>
-                <a
-                    href="/enhanced-player"
-                    style={{
-                        padding: '10px 20px',
-                        backgroundColor: '#27ae60',
-                        color: 'white',
-                        textDecoration: 'none',
-                        borderRadius: '5px',
-                        display: 'inline-block',
-                        fontWeight: 'bold'
-                    }}
-                >
-                    Try Enhanced Player (Video.js) 🎬
-                </a>
-            </div>
 
             <div style={{
                 display: 'flex',
@@ -118,69 +86,28 @@ export default function GoogleDrivePage() {
                         >
                             Remount Component
                         </button>
-                        <button
-                            onClick={() => {
-                                console.log("Debug information:", {
-                                    apiKey,
-                                    folderId,
-                                    envApiKey: process.env.NEXT_PUBLIC_GOOGLE_DRIVE_API_KEY,
-                                    envFolderId: process.env.NEXT_PUBLIC_GOOGLE_DRIVE_FOLDER_ID
-                                });
-                                alert(`API Key: ${apiKey ? "Available" : "Missing"}\nFolder ID: ${folderId ? "Available" : "Missing"}`);
-                            }}
-                            style={{
-                                padding: '8px 16px',
-                                backgroundColor: '#3498db',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            Show Debug Info
-                        </button>
                     </div>
-                </div>            </div>            <div style={{ marginBottom: '20px', textAlign: 'center', color: 'white' }}>
+                </div>
+            </div>
+
+            <div style={{ marginBottom: '20px', textAlign: 'center', color: 'white' }}>
+                <p style={{ fontSize: '16px', opacity: '0.9', marginBottom: '10px' }}>
+                    This enhanced player uses Video.js to provide better compatibility with Google Drive videos.
+                </p>
                 <p style={{ fontSize: '14px', opacity: '0.7' }}>
-                    Searching for videos in Google Drive folder. If nothing appears, check the console for errors.
+                    The player attempts direct streaming of Google Drive videos for a better viewing experience.
                 </p>
                 <p style={{ fontSize: '12px', opacity: '0.6', marginTop: '5px' }}>
                     Last component refresh: {lastRefreshTime}
                 </p>
-            </div>            {componentVisible && (
-                <>
-                    <h2 style={{
-                        textAlign: 'center',
-                        color: 'white',
-                        marginBottom: '30px',
-                        fontWeight: 600,
-                        fontSize: '1.8rem'
-                    }}>
-                        Enhanced Google Drive Player (with Video.js)
-                    </h2>
-                    <EnhancedGoogleDrivePlayer
-                        apiKey={apiKey}
-                        folderId={folderId}
-                        enableSearch={true}
-                    />
+            </div>
 
-                    <div style={{ margin: '40px 0', borderTop: '1px solid rgba(255,255,255,0.1)', padding: '20px 0' }}></div>
-
-                    <h2 style={{
-                        textAlign: 'center',
-                        color: 'white',
-                        marginBottom: '30px',
-                        fontWeight: 600,
-                        fontSize: '1.8rem'
-                    }}>
-                        Original Google Drive Player (iframe)
-                    </h2>
-                    <GoogleDrivePlayer
-                        apiKey={apiKey}
-                        folderId={folderId}
-                        enableSearch={true}
-                    />
-                </>
+            {componentVisible && (
+                <EnhancedGoogleDrivePlayer
+                    apiKey={apiKey}
+                    folderId={folderId}
+                    enableSearch={true}
+                />
             )}
 
             {!componentVisible && (
@@ -194,7 +121,34 @@ export default function GoogleDrivePage() {
                 }}>
                     <p>Reloading component...</p>
                 </div>
-            )}
+            )}            <div style={{ marginTop: '40px', textAlign: 'center', display: 'flex', justifyContent: 'center', gap: '20px' }}>
+                <a
+                    href="/google-drive"
+                    style={{
+                        padding: '10px 20px',
+                        backgroundColor: '#3498db',
+                        color: 'white',
+                        textDecoration: 'none',
+                        borderRadius: '5px',
+                        display: 'inline-block'
+                    }}
+                >
+                    Original Player
+                </a>
+                <a
+                    href="/iframe-player"
+                    style={{
+                        padding: '10px 20px',
+                        backgroundColor: '#e67e22',
+                        color: 'white',
+                        textDecoration: 'none',
+                        borderRadius: '5px',
+                        display: 'inline-block'
+                    }}
+                >
+                    Simple Iframe Player
+                </a>
+            </div>
         </div>
     );
 }

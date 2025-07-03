@@ -1,0 +1,439 @@
+import { NextRequest } from "next/server";
+
+interface VideoWithSubtitle {
+  video: string;
+  videoAlternate?: string;
+  videoEmbed?: string;
+  subtitle: string;
+  title?: string;
+  artist?: string;
+  folder: string;
+  fileId?: string;
+}
+
+interface FileInfo {
+  id: string;
+  name: string;
+  mimeType: string;
+  parents?: string[];
+  folderPath?: string;
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    const searchParams = req.nextUrl.searchParams;    // Get API key and folder ID from query parameters or environment variables
+    let API_KEY = searchParams.get("apiKey");
+    let FOLDER_ID = searchParams.get("folderId");
+
+    // If not provided in query params, use environment variables
+    if (!API_KEY) {
+      API_KEY = process.env.GOOGLE_DRIVE_API_KEY || "";
+      console.log("Using API key from environment variable");
+    } else {
+      console.log("Using API key from query parameter");
+    }
+
+    if (!FOLDER_ID) {
+      FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID || "";
+      console.log("Using folder ID from environment variable");
+    } else {
+      console.log("Using folder ID from query parameter");
+    }
+      // Hard-coded debug info to verify the API key and folder ID
+    console.log("API Key (first 5 chars):", API_KEY ? API_KEY.substring(0, 5) + "..." : "undefined");
+    console.log("Folder ID:", FOLDER_ID);
+    
+    // Test API access first
+    try {
+      const testResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${FOLDER_ID}?key=${API_KEY}&fields=id,name,mimeType`);
+      const testData = await testResponse.json();
+      console.log("Direct API test response:", testData);
+    } catch (testError) {
+      console.error("Direct API test failed:", testError);
+    }
+
+    console.log("Recursive API Request received:", {
+      hasApiKey: !!API_KEY,
+      apiKeyLength: API_KEY?.length || 0,
+      hasFolderId: !!FOLDER_ID,
+      folderIdLength: FOLDER_ID?.length || 0,
+    });
+
+    if (!API_KEY || !FOLDER_ID) {
+      console.error("Missing API configuration:", {
+        API_KEY: !!API_KEY,
+        FOLDER_ID: !!FOLDER_ID,
+      });
+      return new Response(
+        JSON.stringify({
+          error:
+            "Missing Google Drive API configuration. Please check your environment variables.",
+          debug: {
+            hasApiKey: !!API_KEY,
+            hasFolderId: !!FOLDER_ID,
+            envApiKey: !!process.env.GOOGLE_DRIVE_API_KEY,
+            envFolderId: !!process.env.GOOGLE_DRIVE_FOLDER_ID,
+          },
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const drive = google.drive({ version: "v3", auth: API_KEY });
+    const folderMap = new Map<
+      string,
+      { name: string; parent: string | null }
+    >();    const getAllFolders = async (
+      folderId: string,
+      parentPath: string = ""
+    ): Promise<void> => {
+      try {
+        console.log(`Searching for subfolders in folder: ${folderId}`);
+
+        // Make a direct HTTP request to the Google Drive API for better debugging
+        const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false&fields=files(id,name,parents)&pageSize=1000&key=${API_KEY}`;
+        console.log(`Making direct API request to: ${url.substring(0, 100)}...`);
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        console.log('Direct API response for folders:', data);
+        
+        if (!response.ok) {
+          console.error('Failed to fetch folders:', data);
+          return;
+        }
+        
+        const folders = data.files || [];
+        console.log(`Found ${folders.length} subfolders in ${folderId}`);
+
+        for (const folder of folders) {
+          if (folder.id) {
+            const folderName = folder.name || "Unknown Folder";
+            const path = parentPath
+              ? `${parentPath}/${folderName}`
+              : folderName;
+            console.log(`Adding folder to map: ${folderName} (${folder.id})`);
+
+            folderMap.set(folder.id, {
+              name: folderName,
+              parent: folderId !== FOLDER_ID ? folderId : null,
+            });
+
+            // Recursively search for more folders
+            await getAllFolders(folder.id, path);
+          }
+        }
+      } catch (error) {
+        console.error(`Error finding subfolders in ${folderId}:`, error);
+      }
+    };
+
+    await getAllFolders(FOLDER_ID);
+    const buildFolderPath = (folderId: string | null): string => {
+      if (!folderId || folderId === FOLDER_ID) {
+        console.log(`Folder path for ${folderId}: Root (is root folder)`);
+        return "Root";
+      }
+
+      const parts = [];
+      let currentId: string | null = folderId;
+      console.log(`Building folder path for ${folderId}...`);
+
+      while (currentId && currentId !== FOLDER_ID) {
+        const folder = folderMap.get(currentId);
+        if (folder) {
+          console.log(
+            `  Found folder in map: ${folder.name}, parent: ${folder.parent}`
+          );
+          parts.unshift(folder.name);
+          currentId = folder.parent;
+        } else {
+          console.log(
+            `  Could not find folder info for ${currentId} in folder map`
+          );
+          break;
+        }
+      }
+
+      const path = parts.join("/") || "Root";
+      console.log(`Final folder path: ${path}`);
+      return path;
+    };    const getAllFiles = async (): Promise<FileInfo[]> => {
+      const allFiles: FileInfo[] = [];
+      const processedFolders = new Set<string>();
+      
+      // Simplified method that just scans a folder directly
+      // without relying on the folderMap which might be incomplete      const scanFolder = async (folderId: string, folderPath: string = "Root") => {
+        // Don't process the same folder twice
+        if (processedFolders.has(folderId)) {
+          console.log(`Skipping already processed folder: ${folderPath} (${folderId})`);
+          return;
+        }
+        
+        processedFolders.add(folderId);
+        console.log(`⬇️ SCANNING FOLDER: ${folderPath} (${folderId})`);
+        
+        try {
+          // Get all files (videos and subtitles) in this folder - Using direct API call
+          const fileUrl = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents+and+(mimeType+contains+'video/'+or+name+contains+'.vtt'+or+name+contains+'.srt')+and+trashed=false&fields=nextPageToken,files(id,name,mimeType,parents)&pageSize=1000&key=${API_KEY}`;
+          console.log(`Fetching files with direct API call: ${fileUrl.substring(0, 100)}...`);
+          
+          const fileResponse = await fetch(fileUrl);
+          const fileData = await fileResponse.json();
+          
+          console.log('Files API response:', fileData);
+          
+          if (fileData.error) {
+            console.error('Error fetching files:', fileData.error);
+          } else {
+            const files = fileData.files || [];
+            if (files.length > 0) {
+              console.log(`✓ Found ${files.length} media files in folder: ${folderPath}`);
+              const filesWithPath = files.map((file: any) => ({
+                ...file,
+                folderPath: folderPath
+              }));
+              allFiles.push(...filesWithPath as FileInfo[]);
+            } else {
+              console.log(`No media files found in folder: ${folderPath}`);
+            }
+          }
+          
+          // Get all subfolders in this folder - Using direct API call
+          const folderUrl = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false&fields=nextPageToken,files(id,name,parents)&pageSize=1000&key=${API_KEY}`;
+          console.log(`Fetching subfolders with direct API call: ${folderUrl.substring(0, 100)}...`);
+          
+          const folderResponse = await fetch(folderUrl);
+          const folderData = await folderResponse.json();
+          
+          console.log('Folders API response:', folderData);
+          
+          if (folderData.error) {
+            console.error('Error fetching subfolders:', folderData.error);
+          } else {
+            const subfolders = folderData.files || [];
+            if (subfolders.length > 0) {
+              console.log(`➡️ Found ${subfolders.length} subfolders in: ${folderPath}`);
+              
+              // Process each subfolder
+              for (const subfolder of subfolders) {
+                if (subfolder.id && subfolder.name) {
+                  // Update folder map for path building
+                  folderMap.set(subfolder.id, {
+                    name: subfolder.name,
+                    parent: folderId
+                  });
+                  
+                  const subfolderPath = folderPath === "Root" 
+                    ? subfolder.name
+                    : `${folderPath}/${subfolder.name}`;
+                  
+                  console.log(`➡️ Processing subfolder: ${subfolderPath} (${subfolder.id})`);
+                  
+                  // Recursively scan the subfolder
+                  await scanFolder(subfolder.id, subfolderPath);
+                }
+              }
+            } else {
+              console.log(`⚠️ No subfolders found in: ${folderPath}`);
+            }
+          }
+          
+        } catch (error) {
+          console.error(`❌ Error scanning folder ${folderPath}:`, error);
+        }
+      };
+        // First directly check if the root folder exists
+      try {
+        const folderCheck: any = await drive.files.get({
+          fileId: FOLDER_ID,
+          fields: "id,name,mimeType"
+        }).catch((error: any) => {
+          console.error(`❌ Cannot directly access the root folder ${FOLDER_ID}:`, error.message);
+          // Don't throw here, we'll try listing files inside it instead
+          return null;
+        });
+        
+        if (folderCheck) {
+          console.log(`✅ Successfully accessed root folder: ${folderCheck.data.name || "Unnamed"} (${FOLDER_ID})`);
+        } else {
+          console.log(`⚠️ Couldn't directly access the folder. Trying to list its contents instead...`);
+        }
+      } catch (error: any) {
+        console.error(`❌ Error checking root folder ${FOLDER_ID}:`, error.message);
+        // We'll still try the folder scan - don't throw here
+      }
+      
+      // Start scanning from the root folder
+      await scanFolder(FOLDER_ID);
+      
+      // Debug info
+      console.log(`📊 SUMMARY: Processed ${processedFolders.size} folders, found ${allFiles.length} files`);
+
+      return allFiles;
+    };
+
+    const allFiles = await getAllFiles();
+    const videoFiles = allFiles.filter((file) =>
+      file.mimeType?.includes("video/")
+    );
+    const subtitleFiles = allFiles.filter(
+      (file) =>
+        file.name?.toLowerCase().endsWith(".vtt") ||
+        file.name?.toLowerCase().endsWith(".srt")
+    );
+    function getBestSubtitleMatch(
+      videoName: string,
+      videoFolderPath: string,
+      subtitles: FileInfo[]
+    ): FileInfo | null {
+      const videoNameNoExt = videoName.replace(/\.[^/.]+$/, "").toLowerCase();
+
+      // Strategy 1: First try to find subtitle in the same folder with exact name match
+      const sameFolderExactMatch = subtitles.find(
+        (sub) =>
+          sub.folderPath === videoFolderPath &&
+          sub.name.replace(/\.[^/.]+$/, "").toLowerCase() === videoNameNoExt
+      );
+
+      if (sameFolderExactMatch) return sameFolderExactMatch;
+
+      // Strategy 2: Look for subtitle in a subfolder named "subtitles" or "subs" within the video folder
+      // or in a parent folder's subtitles directory
+      const folderParts = videoFolderPath.split("/");
+      const possibleSubtitleFolders = [
+        `${videoFolderPath}/subtitles`,
+        `${videoFolderPath}/subs`,
+        `${folderParts.slice(0, -1).join("/")}/subtitles`,
+        `${folderParts.slice(0, -1).join("/")}/subs`,
+      ];
+      const subtitleFolderMatch = subtitles.find(
+        (sub) =>
+          sub.folderPath &&
+          possibleSubtitleFolders.includes(sub.folderPath) &&
+          (sub.name.replace(/\.[^/.]+$/, "").toLowerCase() === videoNameNoExt ||
+            sub.name.toLowerCase().includes(videoNameNoExt))
+      );
+
+      if (subtitleFolderMatch) return subtitleFolderMatch;
+
+      // Strategy 3: Look for any subtitle file in any folder that matches the video name
+      const exactMatch = subtitles.find(
+        (sub) =>
+          sub.name.replace(/\.[^/.]+$/, "").toLowerCase() === videoNameNoExt
+      );
+
+      if (exactMatch) return exactMatch;
+
+      // Strategy 4: Look for partial matches
+      const containsMatch = subtitles.find(
+        (sub) =>
+          sub.name.toLowerCase().includes(videoNameNoExt) ||
+          videoNameNoExt.includes(
+            sub.name.toLowerCase().replace(/\.[^/.]+$/, "")
+          )
+      );
+
+      if (containsMatch) return containsMatch;
+
+      // No match found
+      return null;
+    }    const videos: VideoWithSubtitle[] = videoFiles.map((videoFile) => {
+      const videoName = videoFile.name || "Unnamed video";
+      const folderPath = videoFile.folderPath || "Root";
+      
+      console.log(`📽️ Processing video: ${videoName} in ${folderPath}`);
+      
+      const matchingSubtitle = getBestSubtitleMatch(
+        videoName,
+        folderPath,
+        subtitleFiles
+      );
+      
+      if (matchingSubtitle) {
+        console.log(`✓ Found subtitle for ${videoName}: ${matchingSubtitle.name}`);
+      } else {
+        console.log(`⚠️ No subtitle found for ${videoName}`);
+      }
+
+      let artist = "";
+      let title = videoName.replace(/\.[^/.]+$/, "");
+
+      // Try to parse title/artist from filename
+      if (videoName.includes(" - ")) {
+        const parts = videoName.split(" - ");
+        artist = parts[0];
+        title = parts[1]?.replace(/\.[^/.]+$/, "") || title;
+        console.log(`✓ Parsed metadata - Artist: "${artist}", Title: "${title}"`);
+      } else {
+        // Try parsing from folder structure
+        const folderParts = folderPath.split('/');
+        if (folderParts.length > 1) {
+          // The first folder might be the artist
+          artist = folderParts[0];
+          console.log(`⚠️ Using folder name as artist: "${artist}"`);
+        }
+      }
+      
+      const fileId = videoFile.id || "";
+
+      return {
+        video: `https://drive.google.com/uc?export=view&id=${fileId}`,
+        videoEmbed: `https://drive.google.com/file/d/${fileId}/preview`,
+        videoDownload: `https://drive.google.com/uc?export=download&id=${fileId}`,
+        subtitle: matchingSubtitle
+          ? `https://drive.google.com/uc?export=download&id=${matchingSubtitle.id}`
+          : "",
+        title: title,
+        artist: artist,
+        folder: folderPath,
+        fileId: fileId,
+      };
+    });    // Extract unique folder paths from videos
+    const folders = Array.from(
+      new Set(videos.map((video) => video.folder).filter(Boolean))
+    );
+    
+    console.log(`📊 Final Results: ${videos.length} videos in ${folders.length} folders`);
+    
+    // Create a summary by folder
+    const folderSummary = folders.map(folder => {
+      const videosInFolder = videos.filter(v => v.folder === folder);
+      return {
+        folder,
+        videoCount: videosInFolder.length,
+        videos: videosInFolder.map(v => v.title)
+      };
+    });
+    
+    console.log("📁 Folder Summary:", folderSummary);
+
+    return new Response(JSON.stringify({ 
+      videos, 
+      folders,
+      summary: {
+        totalVideos: videos.length,
+        totalFolders: folders.length,
+        folderSummary
+      }
+    }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error: any) {
+    console.error("Error in Google Drive Recursive API:", error);
+    return new Response(
+      JSON.stringify({
+        error: error.message || "Failed to fetch videos from Google Drive",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+}

@@ -1,0 +1,108 @@
+/* VideoJSPlayer styles */
+
+.video-js {
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+  position: relative;
+}
+
+.video-js-container {
+  position: relative;
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* Custom theme for video.js */
+.video-js .vjs-big-play-button {
+  background-color: rgba(231, 76, 60, 0.8);
+  border-radius: 50%;
+  font-size: 3em;
+  line-height: 1.5em;
+  height: 1.5em;
+  width: 1.5em;
+  margin-top: -0.75em;
+  margin-left: -0.75em;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.video-js:hover .vjs-big-play-button,
+.video-js .vjs-big-play-button:focus {
+  background-color: rgba(231, 76, 60, 1);
+  transform: scale(1.1);
+}
+
+.video-js .vjs-control-bar {
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 0 0 10px 10px;
+}
+
+.video-js .vjs-progress-control .vjs-progress-holder {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.video-js .vjs-play-progress {
+  background-color: #e74c3c;
+}
+
+.video-js .vjs-volume-level {
+  background-color: #e74c3c;
+}
+
+.video-js .vjs-title-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 10px 15px;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  color: white;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.video-js .vjs-title-text {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Loading spinner */
+.video-js .vjs-loading-spinner {
+  border: 3px solid rgba(231, 76, 60, 0.7);
+}
+.video-js .vjs-loading-spinner:before,
+.video-js .vjs-loading-spinner:after {
+  border-top-color: #e74c3c;
+}
+
+/* Error display */
+.video-js .vjs-error-display {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.video-js .vjs-error-display .vjs-modal-dialog-content {
+  font-size: 1.2em;
+}
+
+/* Responsive scaling */
+@media (max-width: 768px) {
+  .video-js {
+    min-height: 360px;
+  }
+}
+
+@media (max-width: 480px) {
+  .video-js {
+    min-height: 240px;
+  }
+}
