@@ -1,46 +1,75 @@
-// src/app/page.tsx
-import ModernVideoPlayer from '../components/ModernVideoPlayer';
-import path from 'path';
-import fs from 'fs';
+'use client';
 
-const HomePage = async () => {
-  const videosDirectory = path.join(process.cwd(), 'public/Videos/videosxd');
+import React from 'react';
+import EnhancedVideoPlayer from '../components/EnhancedVideoPlayer';
+import { useEffect, useState } from 'react';
 
-  let videoFiles: { video: string; subtitle: string; title?: string; artist?: string; folder: string }[] = [];
-  try {
-    const files = fs.readdirSync(videosDirectory);
-    videoFiles = files
-      .filter((file) => file.endsWith('.webm'))
-      .map((file) => {
-        // Parse title and artist from filename
-        const nameWithoutExt = file.replace('.webm', '').replace(/_/g, ' ');
-        const parts = nameWithoutExt.split(' - ');
+export default function HomePage() {
+  const [localVideos, setLocalVideos] = useState([]);
+  const [apiKey, setApiKey] = useState('');
+  const [folderId, setFolderId] = useState('');
 
-        let title = nameWithoutExt;
-        let artist = undefined;
-
-        if (parts.length >= 2) {
-          artist = parts[0].trim();
-          title = parts.slice(1).join(' - ').trim();
+  useEffect(() => {
+    // Load local videos first
+    const loadLocalVideos = async () => {
+      try {
+        const response = await fetch('/api/videos');
+        if (response.ok) {
+          const data = await response.json();
+          setLocalVideos(data.videos || []);
         }
+      } catch (error) {
+        console.error('Error loading local videos:', error);
+      }
+    };
 
-        return {
-          video: `/Videos/videosxd/${encodeURIComponent(file)}`,
-          subtitle: `/Videos/videosxd/${encodeURIComponent(file.replace('.webm', '.vtt'))}`,
-          title,
-          artist,
-          folder: 'Local Videos'
-        };
-      });
-  } catch (error) {
-    console.error('Error reading video files:', error);
-  }
+    // Fetch environment variables
+    const loadConfig = async () => {
+      try {
+        const response = await fetch('/api/debug');
+        if (response.ok) {
+          const data = await response.json();
+          setApiKey(data.googleDriveApiKey || '');
+          setFolderId(data.googleDriveFolderId || '');
+        }
+      } catch (error) {
+        console.error('Error loading config:', error);
+      }
+    };
 
-  return (
-    <div>
-      <ModernVideoPlayer videos={videoFiles} />
-    </div>
+    loadLocalVideos();
+    loadConfig();
+  }, []);
+  return (<div style={{
+    width: '100%',
+    maxWidth: '1600px',
+    margin: '0 auto',
+    padding: '40px 20px',
+    background: 'linear-gradient(135deg, rgba(200, 200, 210, 0.5), rgba(190, 190, 200, 0.5))',
+    backdropFilter: 'blur(5px)',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+    border: '1px solid rgba(255, 255, 255, 0.4)',
+    borderRadius: '15px',
+    minHeight: '100vh'
+  }}>
+    <h1 style={{
+      textAlign: 'center',
+      color: '#333',
+      marginBottom: '30px',
+      fontWeight: 800,
+      fontSize: '2.5rem',
+      textShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'
+    }}>
+
+    </h1>
+
+    <EnhancedVideoPlayer
+      initialVideos={localVideos}
+      apiKey={apiKey}
+      folderId={folderId}
+      enableGoogleDrive={true}
+      enableSearch={true}
+    />
+  </div>
   );
-};
-
-export default HomePage;
+}

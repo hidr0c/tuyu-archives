@@ -1,0 +1,434 @@
+/* Enhanced Video Player Styles */
+
+.enhancedGoogleDrivePlayer {
+  width: 100%;
+  max-width: 1800px;
+  margin: 0 auto;
+  background: rgba(230, 230, 235, 0.5);
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(5px);
+}
+
+.playerContainer {
+  width: 100%;
+  min-height: 600px; /* Thêm chiều cao tối thiểu */
+}
+
+.playerWrapper {
+  position: relative;
+  width: 100%;
+  background: rgba(200, 200, 210, 0.5);
+  border-radius: 10px 10px 0 0;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  min-height: 600px;
+  max-height: 85vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.videoPlayer {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 600px !important;
+}
+
+.noVideoSelected {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  border-radius: 10px 10px 0 0;
+  font-size: 1.2rem;
+}
+
+.videoControls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  background: linear-gradient(
+    to bottom,
+    rgba(240, 240, 245, 0.4),
+    rgba(220, 220, 230, 0.5)
+  );
+  backdrop-filter: blur(5px);
+  border-radius: 0 0 10px 10px;
+}
+
+.controlButton {
+  padding: 10px 18px;
+  border-radius: 25px;
+  background: #3498db;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.controlButton:hover {
+  background: #2980b9;
+  transform: translateY(-2px);
+}
+
+.controlButton.disabled {
+  background: #7f8c8d;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.controlIcon {
+  font-size: 16px;
+}
+
+.videoInfo {
+  padding: 20px;
+  text-align: center;
+  background: rgba(210, 210, 220, 0.5);
+  color: #333;
+  backdrop-filter: blur(5px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.videoTitle {
+  margin: 0 0 8px 0;
+  font-size: 1.4rem;
+}
+
+.videoArtist {
+  margin: 0 0 6px 0;
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.videoFolder {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.videoCounter {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.playlistContainer {
+  margin-top: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(210, 210, 220, 0.5);
+  backdrop-filter: blur(5px);
+}
+
+.playlistHeader {
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  background: linear-gradient(
+    to bottom,
+    rgba(220, 220, 225, 0.5),
+    rgba(200, 200, 210, 0.5)
+  );
+}
+
+.playlistTitle {
+  margin: 0 0 15px 0;
+  font-size: 1.3rem;
+  text-align: center;
+  color: #333;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.searchContainer {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 12px 20px;
+  border-radius: 25px;
+  border: 2px solid rgba(52, 152, 219, 0.3);
+  background: rgba(255, 255, 255, 0.4);
+  color: #333;
+  font-size: 14px;
+  outline: none;
+  backdrop-filter: blur(5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.folderFilter {
+  margin-top: 20px;
+  color: #333;
+}
+
+.folderFilter p {
+  margin: 0 0 10px 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.folderButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.folderButton {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.3);
+  color: #333;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.folderButton:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.folderButtonActive {
+  background: rgba(52, 152, 219, 0.2);
+  border-color: rgba(52, 152, 219, 0.4);
+  color: #2980b9;
+}
+
+.clearFiltersButton {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  background: rgba(231, 76, 60, 0.2);
+  color: #c0392b;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 10px;
+}
+
+.clearFiltersButton:hover {
+  background: rgba(231, 76, 60, 0.3);
+}
+
+.playlistItems {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-bottom: 10px;
+  background: rgba(200, 200, 210, 0.5);
+}
+
+.playlistItem {
+  padding: 15px 20px;
+  cursor: pointer;
+  border-left: 4px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.playlistItem:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateX(3px);
+}
+
+.playlistItem.active {
+  border-left: 4px solid #e74c3c;
+  background: rgba(231, 76, 60, 0.2);
+  transform: translateX(5px);
+}
+
+.playlistItemContent {
+  overflow: hidden;
+}
+
+.playlistItemTitle {
+  font-weight: 500;
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.playlistItem.active .playlistItemTitle {
+  font-weight: 600;
+  color: #e74c3c;
+}
+
+.playlistItemArtist {
+  font-size: 14px;
+  opacity: 0.9;
+  color: #3498db;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.playlistItemFolder {
+  font-size: 12px;
+  opacity: 0.7;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.loadingContainer {
+  padding: 60px 20px;
+  color: #333;
+  text-align: center;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.4),
+    rgba(240, 240, 245, 0.5)
+  );
+  backdrop-filter: blur(5px);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.loadingMore {
+  padding: 15px;
+  color: #333;
+  text-align: center;
+  font-size: 14px;
+  background: rgba(200, 200, 210, 0.5);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.loader {
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+.miniLoader {
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top: 3px solid #3498db;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.errorContainer {
+  padding: 40px 20px;
+  text-align: center;
+  color: #333;
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  border-radius: 10px;
+  margin: 20px 0;
+  backdrop-filter: blur(5px);
+}
+
+.errorContainer h3 {
+  color: #e74c3c;
+  margin-bottom: 15px;
+}
+
+.debugInfo {
+  margin: 15px 0;
+  text-align: left;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  border-radius: 5px;
+  font-family: monospace;
+}
+
+.debugInfo pre {
+  margin: 5px 0;
+  font-size: 12px;
+}
+
+.debugResponse {
+  margin: 5px 0;
+  font-size: 12px;
+  max-height: 200px;
+  overflow: auto;
+}
+
+.buttonContainer {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.retryButton,
+.reloadButton,
+.refreshButton {
+  margin-top: 15px;
+  padding: 10px 20px;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.retryButton {
+  background: #e74c3c;
+}
+
+.reloadButton,
+.refreshButton {
+  background: #3498db;
+}
+
+.retryButton:hover,
+.reloadButton:hover,
+.refreshButton:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+}
+
+.noVideos {
+  padding: 40px 20px;
+  text-align: center;
+  color: #333;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(5px);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  margin: 20px 0;
+}
+
+.smallText {
+  font-size: 14px;
+  opacity: 0.7;
+  margin: 10px 0;
+}

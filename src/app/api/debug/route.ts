@@ -10,6 +10,8 @@ export async function GET(req: NextRequest) {
 
     return new Response(
       JSON.stringify({
+        googleDriveApiKey: API_KEY,
+        googleDriveFolderId: FOLDER_ID,
         debug: {
           environment: {
             NODE_ENV: process.env.NODE_ENV,

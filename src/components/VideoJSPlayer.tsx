@@ -29,30 +29,34 @@ const VideoJSPlayer: React.FC<VideoPlayerProps> = ({
     onReady
 }) => {
     const videoRef = useRef<HTMLDivElement>(null);
-    const playerRef = useRef<Player | null>(null);    useEffect(() => {
+    const playerRef = useRef<Player | null>(null); useEffect(() => {
         // Make sure Video.js player is only initialized once
         if (!playerRef.current) {
             if (!videoRef.current) return;
 
             // For Google Drive preview URLs or when type is explicitly text/html, we use iframe
             const useIframe = src.includes('drive.google.com/file') && src.includes('/preview') || type === 'text/html';
-            
+
             if (useIframe) {
-                console.log('Using iframe player for URL:', src);
-                
-                const iframe = document.createElement('iframe');
+                console.log('Using iframe player for URL:', src); const iframe = document.createElement('iframe');
                 iframe.src = src;
                 iframe.width = '100%';
                 iframe.height = '100%';
                 iframe.style.border = 'none';
+                iframe.style.minHeight = '600px';
+                iframe.style.position = 'absolute';
+                iframe.style.top = '0';
+                iframe.style.left = '0';
+                iframe.style.width = '100%';
+                iframe.style.height = '100%';
                 iframe.setAttribute('allowFullScreen', 'true');
                 iframe.allow = 'autoplay; encrypted-media';
-                
+
                 if (videoRef.current) {
                     videoRef.current.innerHTML = '';
                     videoRef.current.appendChild(iframe);
                 }
-                
+
                 // Create a mock player object to satisfy the interface
                 const mockPlayer = {
                     src: (sourceObj: any) => {
@@ -68,21 +72,21 @@ const VideoJSPlayer: React.FC<VideoPlayerProps> = ({
                     },
                     isDisposed: () => false,
                     play: () => Promise.resolve(),
-                    pause: () => {},
-                    on: () => {}
+                    pause: () => { },
+                    on: () => { }
                 } as unknown as Player;
-                
+
                 playerRef.current = mockPlayer;
-                
+
                 if (onReady) onReady(mockPlayer);
                 return;
             }
-            
+
             // Standard VideoJS initialization for normal video sources
             const videoElement = document.createElement('video-js');
             videoElement.classList.add('vjs-big-play-centered');
             videoRef.current.appendChild(videoElement);
-            
+
             const player = playerRef.current = videojs(videoElement, {
                 controls,
                 autoplay,
@@ -109,13 +113,14 @@ const VideoJSPlayer: React.FC<VideoPlayerProps> = ({
                 titleOverlay.className = 'vjs-title-overlay';
                 titleOverlay.innerHTML = `<div class="vjs-title-text">${title}</div>`;
                 videoRef.current.appendChild(titleOverlay);
-            }        } else {
+            }
+        } else {
             // Update the player's source if it changes
             const player = playerRef.current;
-            
+
             // For Google Drive preview URLs or when type is explicitly text/html, update iframe
             const useIframe = src.includes('drive.google.com/file') && src.includes('/preview') || type === 'text/html';
-            
+
             if (useIframe) {
                 console.log('Updating iframe for source:', src);
                 if (videoRef.current) {
@@ -127,40 +132,42 @@ const VideoJSPlayer: React.FC<VideoPlayerProps> = ({
                         // Dispose the old player and reinitialize with iframe
                         if (player && typeof player.dispose === 'function' && !player.isDisposed()) {
                             player.dispose();
-                        }
-                        
-                        // Create iframe for Google Drive preview
-                        const newIframe = document.createElement('iframe');
-                        newIframe.src = src;
-                        newIframe.width = '100%';
-                        newIframe.height = '100%';
-                        newIframe.style.border = 'none';
-                        newIframe.setAttribute('allowFullScreen', 'true');
-                        newIframe.allow = 'autoplay; encrypted-media';
-                        
-                        if (videoRef.current) {
+                        }                        // Create iframe for Google Drive preview
+                        const iframe = document.createElement('iframe');
+                        iframe.src = src;
+                        iframe.width = '100%';
+                        iframe.height = '100%';
+                        iframe.style.border = 'none';
+                        iframe.style.minHeight = '600px';
+                        iframe.style.position = 'absolute';
+                        iframe.style.top = '0';
+                        iframe.style.left = '0';
+                        iframe.style.width = '100%';
+                        iframe.style.height = '100%';
+                        iframe.setAttribute('allowFullScreen', 'true');
+                        iframe.allow = 'autoplay; encrypted-media'; if (videoRef.current) {
                             videoRef.current.innerHTML = '';
-                            videoRef.current.appendChild(newIframe);
+                            videoRef.current.appendChild(iframe);
                         }
-                        
+
                         // Create a mock player
                         const mockPlayer = {
                             src: (sourceObj: any) => {
-                                if (newIframe && videoRef.current) {
-                                    newIframe.src = sourceObj.src;
+                                if (iframe && videoRef.current) {
+                                    iframe.src = sourceObj.src;
                                 }
                             },
                             dispose: () => {
-                                if (newIframe && videoRef.current) {
-                                    newIframe.remove();
+                                if (iframe && videoRef.current) {
+                                    iframe.remove();
                                 }
                             },
                             isDisposed: () => false,
                             play: () => Promise.resolve(),
-                            pause: () => {},
-                            on: () => {}
+                            pause: () => { },
+                            on: () => { }
                         } as unknown as Player;
-                        
+
                         playerRef.current = mockPlayer;
                     }
                 }
@@ -184,11 +191,25 @@ const VideoJSPlayer: React.FC<VideoPlayerProps> = ({
                 playerRef.current = null;
             }
         };
-    }, []);
-
-    return (
-        <div data-vjs-player>
-            <div ref={videoRef} className={`video-js-container ${className}`}></div>
+    }, []); return (
+        <div data-vjs-player style={{
+            width: '100%',
+            height: '100%',
+            minHeight: '600px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+        }}>
+            <div
+                ref={videoRef}
+                className={`video-js-container ${className}`}
+                style={{
+                    width: '100%',
+                    height: '100%',
+                    minHeight: '600px',
+                    overflow: 'hidden'
+                }}
+            ></div>
         </div>
     );
 };

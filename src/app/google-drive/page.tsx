@@ -41,16 +41,15 @@ export default function GoogleDrivePage() {
             padding: '40px 20px',
             background: 'linear-gradient(135deg, rgba(20, 20, 35, 0.97), rgba(30, 30, 50, 0.97))',
             minHeight: '100vh'
+        }}>            <h1 style={{
+            textAlign: 'center',
+            color: 'white',
+            marginBottom: '30px',
+            fontWeight: 800,
+            fontSize: '2.5rem',
+            textShadow: '0 2px 10px rgba(0,0,0,0.3)'
         }}>
-            <h1 style={{
-                textAlign: 'center',
-                color: 'white',
-                marginBottom: '30px',
-                fontWeight: 800,
-                fontSize: '2.5rem',
-                textShadow: '0 2px 10px rgba(0,0,0,0.3)'
-            }}>
-                TUYU Video Archive
+
             </h1>
 
             <div style={{ marginBottom: '30px', textAlign: 'center' }}>

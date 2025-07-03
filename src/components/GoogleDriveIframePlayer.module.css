@@ -1,0 +1,154 @@
+/* GoogleDriveIframePlayer.module.css */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.googleDrivePlayer {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.controlButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(52, 152, 219, 0.7);
+}
+
+.prevButton:hover {
+  background: linear-gradient(135deg, #3498db, #1a5276) !important;
+}
+
+.nextButton:hover {
+  background: linear-gradient(135deg, #3498db, #1a5276) !important;
+}
+
+.searchInput:focus {
+  border-color: rgba(52, 152, 219, 0.7);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
+}
+
+.playlistItems {
+  overflow-y: auto;
+}
+
+.playlistItems::-webkit-scrollbar {
+  width: 8px;
+}
+
+.playlistItems::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.playlistItems::-webkit-scrollbar-thumb {
+  background-color: rgba(52, 152, 219, 0.5);
+  border-radius: 4px;
+}
+
+.playlistItem {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.playlistItem:hover {
+  background: rgba(52, 152, 219, 0.1) !important;
+  transform: translateX(3px) scale(1.01);
+}
+
+.active {
+  animation: slideIn 0.3s ease-out;
+}
+
+.playerWrapper iframe {
+  transition: all 0.3s ease;
+}
+
+.loadingContainer {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.loader {
+  animation: spin 1s linear infinite;
+}
+
+.videoInfo {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.videoTitle {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.videoArtist {
+  animation: fadeIn 0.7s ease-out;
+}
+
+.videoFolder {
+  animation: fadeIn 0.9s ease-out;
+}
+
+/* Responsive styles */
+@media screen and (max-width: 768px) {
+  .playerWrapper iframe {
+    height: 50vh !important;
+  }
+
+  .videoControls {
+    flex-direction: column;
+  }
+
+  .controlButton {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .videoTitle {
+    font-size: 1.2rem !important;
+  }
+
+  .videoArtist {
+    font-size: 0.9rem !important;
+  }
+
+  .playlistItem {
+    padding: 12px 15px !important;
+  }
+}
