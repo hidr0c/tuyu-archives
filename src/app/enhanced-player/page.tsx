@@ -24,7 +24,6 @@ export default function EnhancedPlayerPage() {
             maxWidth: '1600px',
             margin: '0 auto',
             padding: '40px 20px',
-            background: 'linear-gradient(135deg, rgba(20, 20, 35, 0.97), rgba(30, 30, 50, 0.97))',
             minHeight: '100vh'
         }}>            <h1 style={{
             textAlign: 'center',
@@ -44,7 +43,6 @@ export default function EnhancedPlayerPage() {
             }}>
                 <div style={{
                     padding: '15px',
-                    backgroundColor: 'rgba(52, 152, 219, 0.2)',
                     borderRadius: '10px',
                     marginBottom: '30px',
                     color: 'white',
@@ -139,7 +137,6 @@ export default function EnhancedPlayerPage() {
                     style={{
                         padding: '10px 20px',
                         backgroundColor: '#e67e22',
-                        color: 'white',
                         textDecoration: 'none',
                         borderRadius: '5px',
                         display: 'inline-block'

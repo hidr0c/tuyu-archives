@@ -14,6 +14,7 @@ interface VideoPlayerProps {
     responsive?: boolean;
     fluid?: boolean;
     className?: string;
+    subtitle?: string; // URL của tệp phụ đề
     onReady?: (player: Player) => void;
 }
 
@@ -26,10 +27,13 @@ const VideoJSPlayer: React.FC<VideoPlayerProps> = ({
     responsive = true,
     fluid = true,
     className = '',
+    subtitle,
     onReady
 }) => {
     const videoRef = useRef<HTMLDivElement>(null);
-    const playerRef = useRef<Player | null>(null); useEffect(() => {
+    const playerRef = useRef<Player | null>(null);
+
+    useEffect(() => {
         // Make sure Video.js player is only initialized once
         if (!playerRef.current) {
             if (!videoRef.current) return;
@@ -38,7 +42,8 @@ const VideoJSPlayer: React.FC<VideoPlayerProps> = ({
             const useIframe = src.includes('drive.google.com/file') && src.includes('/preview') || type === 'text/html';
 
             if (useIframe) {
-                console.log('Using iframe player for URL:', src); const iframe = document.createElement('iframe');
+                console.log('Using iframe player for URL:', src);
+                const iframe = document.createElement('iframe');
                 iframe.src = src;
                 iframe.width = '100%';
                 iframe.height = '100%';
@@ -85,9 +90,7 @@ const VideoJSPlayer: React.FC<VideoPlayerProps> = ({
             // Standard VideoJS initialization for normal video sources
             const videoElement = document.createElement('video-js');
             videoElement.classList.add('vjs-big-play-centered');
-            videoRef.current.appendChild(videoElement);
-
-            const player = playerRef.current = videojs(videoElement, {
+            videoRef.current.appendChild(videoElement); const playerOptions: any = {
                 controls,
                 autoplay,
                 responsive,
@@ -101,7 +104,32 @@ const VideoJSPlayer: React.FC<VideoPlayerProps> = ({
                         overrideNative: true
                     }
                 }
-            }, () => {
+            };
+
+            // Add subtitle track if provided
+            if (subtitle) {
+                console.log('Adding subtitle track:', subtitle);
+                if (!playerOptions.tracks) {
+                    playerOptions.tracks = [];
+                }
+
+                playerOptions.tracks.push({
+                    kind: 'subtitles',
+                    src: subtitle,
+                    srclang: 'vi',
+                    label: 'Vietnamese',
+                    default: true
+                });
+                playerOptions.tracks.push({
+                    kind: 'subtitles',
+                    src: subtitle,
+                    srclang: 'en',
+                    label: 'English',
+                    default: true
+                });
+            }
+
+            const player = playerRef.current = videojs(videoElement, playerOptions, () => {
                 // Player is ready
                 console.log('VideoJS player is ready');
                 if (onReady) onReady(player);
@@ -132,7 +160,8 @@ const VideoJSPlayer: React.FC<VideoPlayerProps> = ({
                         // Dispose the old player and reinitialize with iframe
                         if (player && typeof player.dispose === 'function' && !player.isDisposed()) {
                             player.dispose();
-                        }                        // Create iframe for Google Drive preview
+                        }
+                        // Create iframe for Google Drive preview
                         const iframe = document.createElement('iframe');
                         iframe.src = src;
                         iframe.width = '100%';
@@ -145,7 +174,9 @@ const VideoJSPlayer: React.FC<VideoPlayerProps> = ({
                         iframe.style.width = '100%';
                         iframe.style.height = '100%';
                         iframe.setAttribute('allowFullScreen', 'true');
-                        iframe.allow = 'autoplay; encrypted-media'; if (videoRef.current) {
+                        iframe.allow = 'autoplay; encrypted-media';
+
+                        if (videoRef.current) {
                             videoRef.current.innerHTML = '';
                             videoRef.current.appendChild(iframe);
                         }
@@ -176,10 +207,35 @@ const VideoJSPlayer: React.FC<VideoPlayerProps> = ({
                 player.src({
                     src,
                     type
-                });
+                });                // Update subtitles if provided
+                if (subtitle) {
+                    try {
+                        // Remove existing text tracks
+                        const textTracks = player.textTracks() as any;
+
+                        // Loop through tracks in reverse order to avoid issues when removing items
+                        for (let i = textTracks.length - 1; i >= 0; i--) {
+                            const track = textTracks[i];
+                            if (track && player.removeRemoteTextTrack) {
+                                player.removeRemoteTextTrack(track);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error removing text tracks:', error);
+                    }
+
+                    // Add new subtitle track
+                    player.addRemoteTextTrack({
+                        kind: 'subtitles',
+                        src: subtitle,
+                        srclang: 'vi',
+                        label: 'Vietnamese',
+                        default: true
+                    }, false);
+                }
             }
         }
-    }, [src, type, videoRef, controls, autoplay, responsive, fluid, title, onReady]);
+    }, [src, type, videoRef, controls, autoplay, responsive, fluid, title, subtitle, onReady]);
 
     // Cleanup when component unmounts
     useEffect(() => {
@@ -191,7 +247,9 @@ const VideoJSPlayer: React.FC<VideoPlayerProps> = ({
                 playerRef.current = null;
             }
         };
-    }, []); return (
+    }, []);
+
+    return (
         <div data-vjs-player style={{
             width: '100%',
             height: '100%',

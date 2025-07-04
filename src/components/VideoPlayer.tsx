@@ -19,31 +19,25 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videos }) => {
     const [progress, setProgress] = useState(0);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
-    const videoRef = useRef<HTMLVideoElement>(null);
-
-    const presetVolumePercentage = 0.5; // Set the desired percentage (e.g., 50%)
-    const [previousVolume, setPreviousVolume] = useState(1); // Track the previous video's volume
+    const videoRef = useRef<HTMLVideoElement>(null); const presetVolumePercentage = 0.5;
+    const [previousVolume, setPreviousVolume] = useState(1);
 
     useEffect(() => {
         setPlaylist(videos);
         setCurrentIndex(0);
-    }, [videos]);    // Volume control - chỉ cần một useEffect để xử lý volume
+    }, [videos]);
+
     useEffect(() => {
         if (videoRef.current) {
             const adjustedVolume = Math.min(volume * presetVolumePercentage, 1);
             videoRef.current.volume = adjustedVolume;
-            setPreviousVolume(adjustedVolume); // Lưu trữ giá trị volume để sử dụng khi chuyển video
+            setPreviousVolume(adjustedVolume);
         }
-    }, [volume, presetVolumePercentage]);
-
-    // Xử lý khi thay đổi video
-    useEffect(() => {
+    }, [volume, presetVolumePercentage]); useEffect(() => {
         if (videoRef.current) {
-            // Giữ âm lượng khi chuyển video
             const adjustedVolume = Math.min(volume * presetVolumePercentage, 1);
             videoRef.current.volume = adjustedVolume;
 
-            // Tự động phát video mới
             videoRef.current.play()
                 .then(() => {
                     setIsPlaying(true);
@@ -68,7 +62,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videos }) => {
 
     const handleNext = () => {
         setCurrentIndex((prevIndex) => (prevIndex + 1) % playlist.length);
-        setIsPlaying(false); // Reset play state for the next video
+        setIsPlaying(false);
     };
 
     const handleBack = () => {
@@ -85,10 +79,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videos }) => {
         setIsLoop((prev) => !prev);
     }; const handleEnded = () => {
         if (isLoop) {
-            // Khởi động lại video hiện tại thay vì chỉ đặt lại currentIndex
             if (videoRef.current) {
-                videoRef.current.currentTime = 0; // Đặt thời gian về đầu video
-                videoRef.current.play()          // Phát lại video
+                videoRef.current.currentTime = 0;
+                videoRef.current.play()
                     .then(() => setIsPlaying(true))
                     .catch(err => {
                         console.error("Could not loop video:", err);
@@ -127,7 +120,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videos }) => {
 
     const handleSelectVideo = (index: number) => {
         setCurrentIndex(index);
-        setIsPlaying(false); // Reset play state for the selected video
+        setIsPlaying(false);
     };
 
     if (playlist.length === 0) {

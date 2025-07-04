@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import VideoJSPlayer from './VideoJSPlayer';
 import styles from './EnhancedVideoPlayer.module.css';
 import Player from 'video.js/dist/types/player';
@@ -28,15 +28,16 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
     apiKey,
     folderId,
     initialVideos = [],
-    enableSearch = true,
+    enableSearch = false,
     enableGoogleDrive = true
 }) => {
     const [videos, setVideos] = useState<Video[]>(initialVideos);
     const [filteredVideos, setFilteredVideos] = useState<Video[]>(initialVideos);
     const [loading, setLoading] = useState(enableGoogleDrive);
-    const [error, setError] = useState<string | null>(null);
-    const [currentIndex, setCurrentIndex] = useState(0);
+    const [error, setError] = useState<string | null>(null); const [currentIndex, setCurrentIndex] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+    const [isSearching, setIsSearching] = useState(false);
     const [debugInfo, setDebugInfo] = useState<any>(null);
     const [player, setPlayer] = useState<Player | null>(null);
     const [isPlayerReady, setIsPlayerReady] = useState(false);
@@ -44,76 +45,147 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
     const [selectedFolders, setSelectedFolders] = useState<string[]>([]);
     const [availableFolders, setAvailableFolders] = useState<string[]>([]);
 
-    // Function to clean title by removing "TUYU" or "TUYU -" prefix
-    const cleanTitle = useCallback((title: string | undefined): string => {
+    // Track current video being played to maintain it during searches
+    const currentVideoRef = useRef<Video | null>(null);
+    // Store stable reference to current index to avoid unwanted updates
+    const stableCurrentIndexRef = useRef<number>(currentIndex); const cleanTitle = useCallback((title: string | undefined): string => {
         if (!title) return '';
         return title.replace(/TUYU\s*-?\s*/g, '').trim();
     }, []);
 
-    // Log component mount for debugging
     useEffect(() => {
         console.log('EnhancedVideoPlayer component mounted');
         return () => {
             console.log('EnhancedVideoPlayer component unmounting');
         };
-    }, []);
-
-    // Load Google Drive videos if enabled
-    useEffect(() => {
+    }, []); const normalizeText = useCallback((text: string): string => {
+        if (!text) return '';
+        try {
+            // Normalize Vietnamese and other accented characters
+            const normalized = text
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '') // Remove combining diacritical marks
+                .replace(/đ/g, 'd')
+                .replace(/Đ/g, 'D')
+                .toLowerCase()
+                .trim();
+            return normalized;
+        } catch (error) {
+            console.error('Error normalizing text:', error, 'Original text:', text);
+            // Fallback: just convert to lowercase and trim
+            try {
+                return text.toLowerCase().trim();
+            } catch (fallbackError) {
+                console.error('Even fallback failed:', fallbackError);
+                return '';
+            }
+        }
+    }, []); useEffect(() => {
         if (enableGoogleDrive && apiKey && folderId) {
             fetchGoogleDriveVideos();
         }
-    }, [enableGoogleDrive, apiKey, folderId]);
+    }, [enableGoogleDrive, apiKey, folderId]);    // Save the current playing video reference when currentIndex changes
+    useEffect(() => {
+        if (filteredVideos.length > 0 && currentIndex < filteredVideos.length) {
+            currentVideoRef.current = filteredVideos[currentIndex];
+            stableCurrentIndexRef.current = currentIndex;
+        }
+    }, [currentIndex, filteredVideos]);
 
-    // Update filtered videos when search term changes or videos are loaded
+    // Debug: Log currentIndex changes to help track unwanted video switches
+    useEffect(() => {
+        console.log(`Current index changed to: ${currentIndex}, video:`, filteredVideos[currentIndex]?.title || 'No video');
+    }, [currentIndex, filteredVideos]);
+
+    // Debounce search term to avoid filtering on each keystroke
+    useEffect(() => {
+        setIsSearching(true);
+        const timer = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm);
+            setIsSearching(false);
+        }, 300); // 300ms debounce
+
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    // Update filtered videos when debounced search term or filters change
     useEffect(() => {
         let filtered = [...videos];
 
-        // Apply folder filter if any folders are selected
+        // Filter by folder
         if (selectedFolders.length > 0) {
             filtered = filtered.filter(video =>
                 selectedFolders.includes(video.folder)
             );
         }
 
-        // Apply search term filter
-        if (searchTerm) {
-            filtered = filtered.filter(video =>
-                video.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                video.artist?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                video.folder?.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
+        // Filter by search term
+        if (debouncedSearchTerm) {
+            try {
+                const normalizedSearchTerm = normalizeText(debouncedSearchTerm);
 
+                filtered = filtered.filter(video => {
+                    try {
+                        return normalizeText(video.title || '').includes(normalizedSearchTerm) ||
+                            normalizeText(video.artist || '').includes(normalizedSearchTerm) ||
+                            normalizeText(video.folder || '').includes(normalizedSearchTerm);
+                    } catch (err) {
+                        console.error('Error filtering video:', err, video);
+                        return false; // Skip videos that cause errors
+                    }
+                });
+            } catch (err) {
+                console.error('Error in search filtering:', err);
+                // Keep the list as is if there's an error
+            }
+        }        // Update filtered videos list
         setFilteredVideos(filtered);
 
-        // Only reset current index if the filtered list changes significantly
-        if (filtered.length > 0 && currentIndex >= filtered.length) {
-            setCurrentIndex(0);
+        // CRITICAL: Only update currentIndex when search is complete AND absolutely necessary
+        if (!isSearching && filtered.length > 0) {
+            // If there's a current video playing, try to maintain it at all costs
+            if (currentVideoRef.current && filteredVideos.length > 0) {
+                const currentPlayingVideo = filteredVideos[currentIndex];
+
+                // Check if the current playing video is still in the filtered results
+                const stillAvailableIndex = filtered.findIndex(v =>
+                    v.video === currentPlayingVideo?.video ||
+                    (v.title === currentPlayingVideo?.title && v.artist === currentPlayingVideo?.artist)
+                );
+
+                if (stillAvailableIndex !== -1) {
+                    // Current video is still available, update index to its new position
+                    if (stillAvailableIndex !== currentIndex) {
+                        console.log(`Updating index from ${currentIndex} to ${stillAvailableIndex} to maintain current video`);
+                        setCurrentIndex(stillAvailableIndex);
+                    }
+                } else {
+                    // Current video was filtered out - DON'T automatically switch to index 0
+                    // Keep the current index but note that video is not available
+                    console.log('Current video filtered out, but keeping current index to avoid auto-switching');
+                }
+            } else if (currentVideoRef.current === null && filtered.length > 0 && currentIndex >= filtered.length) {
+                // Only set to first video if no video is playing AND current index is out of bounds
+                console.log('Setting to first video because no video is currently playing');
+                setCurrentIndex(0);
+            }
         }
-    }, [searchTerm, videos, selectedFolders]);
+    }, [debouncedSearchTerm, videos, selectedFolders, normalizeText, isSearching]);
 
     // Effect for updating video URL when current video changes
     useEffect(() => {
         if (filteredVideos.length > 0 && currentIndex < filteredVideos.length) {
-            const currentVideo = filteredVideos[currentIndex];
-
-            if (currentVideo) {
-                // Determine the best URL to use
+            const currentVideo = filteredVideos[currentIndex]; if (currentVideo) {
                 let sourceUrl = currentVideo.video;
                 let sourceType = 'video/mp4';
 
-                // For Google Drive videos, use the embed URL with iframe
                 if (currentVideo.fileId) {
                     sourceUrl = getEmbedUrl(currentVideo);
-                    sourceType = 'text/html'; // Signal to VideoJSPlayer to use iframe
+                    sourceType = 'text/html';
                 }
 
                 console.log(`Setting video source to: ${sourceUrl}`);
-                setVideoUrl(sourceUrl);
-
-                // Update player source if player already exists
-                if (player && isPlayerReady) {
+                setVideoUrl(sourceUrl); if (player && isPlayerReady) {
                     console.log(`Updating player with URL: ${sourceUrl}, type: ${sourceType}`);
                     player.src({
                         src: sourceUrl,
@@ -122,10 +194,7 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
                 }
             }
         }
-    }, [filteredVideos, currentIndex, player, isPlayerReady]);
-
-    // Extract all available folders from videos
-    useEffect(() => {
+    }, [filteredVideos, currentIndex, player, isPlayerReady]); useEffect(() => {
         const folders = Array.from(new Set(videos.map(v => v.folder)));
         setAvailableFolders(folders);
     }, [videos]);
@@ -140,36 +209,24 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
 
             const params = new URLSearchParams();
             if (apiKey) params.append('apiKey', apiKey);
-            if (folderId) params.append('folderId', folderId);
-
-            // Fetch with absolute URL to avoid path issues
-            const baseUrl = window.location.origin;
+            if (folderId) params.append('folderId', folderId); const baseUrl = window.location.origin;
             const apiUrl = `${baseUrl}/api/google-drive-videos-recursive?${params}`;
 
             const response = await fetch(apiUrl);
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('Google Drive API failed:', errorText);
-
-                // Try fallback API
-                const fallbackResponse = await fetch(`${baseUrl}/api/google-drive-videos?${params}`);
+                console.error('Google Drive API failed:', errorText); const fallbackResponse = await fetch(`${baseUrl}/api/google-drive-videos?${params}`);
 
                 if (!fallbackResponse.ok) {
                     const errorData = await fallbackResponse.json().catch(() => ({ error: 'Unknown error' }));
                     throw new Error(errorData.error || 'All API endpoints failed');
-                }
-
-                const data = await fallbackResponse.json();
-                // Merge with existing videos
+                } const data = await fallbackResponse.json();
                 setVideos(prev => [...prev, ...(data.videos || [])]);
                 setDebugInfo(data.debug || null);
             } else {
                 const data = await response.json();
-                console.log(`Found ${data.videos?.length || 0} videos in Google Drive`);
-
-                // Merge with existing videos
-                setVideos(prev => [...prev, ...(data.videos || [])]);
+                console.log(`Found ${data.videos?.length || 0} videos in Google Drive`); setVideos(prev => [...prev, ...(data.videos || [])]);
                 setDebugInfo(data.debug || null);
             }
         } catch (err) {
@@ -219,27 +276,19 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
         });
 
         player.on('error', (e: unknown) => {
-            console.error('Video.js player error:', e);
-
-            // If there's an error with direct URL, try switching to preview URL for Google Drive videos
-            const currentVideo = filteredVideos[currentIndex];
+            console.error('Video.js player error:', e); const currentVideo = filteredVideos[currentIndex];
             if (currentVideo?.fileId) {
                 const embedUrl = `https://drive.google.com/file/d/${currentVideo.fileId}/preview`;
                 console.log(`Error with video playback. Switching to embed URL: ${embedUrl}`);
 
-                // Set the new URL and let the effect handle updating the player
                 setVideoUrl(embedUrl);
 
-                // Since we're using iframe for Google Drive preview URLs, we need special handling
                 player.src({
                     src: embedUrl,
                     type: 'text/html'
                 });
             }
-        });
-
-        // Additional event logging for debugging
-        ['play', 'pause', 'seeking', 'seeked', 'volumechange'].forEach(event => {
+        });['play', 'pause', 'seeking', 'seeked', 'volumechange'].forEach(event => {
             player.on(event, () => console.log(`Video event: ${event}`));
         });
     }, [playNext, filteredVideos, currentIndex]);
@@ -253,6 +302,14 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
             }
         });
     };
+
+    // Debug effect to track currentIndex changes
+    useEffect(() => {
+        console.log('CurrentIndex changed to:', currentIndex, 'Filtered videos length:', filteredVideos.length);
+        if (filteredVideos[currentIndex]) {
+            console.log('Now playing:', filteredVideos[currentIndex].title);
+        }
+    }, [currentIndex, filteredVideos]);
 
     if (loading && videos.length === 0) {
         return (
@@ -296,23 +353,23 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
     return (
         <div className={styles.enhancedGoogleDrivePlayer}>
             <div className={styles.playerContainer}>
-                <div className={styles.playerWrapper}>
-                    {videoUrl ? (
-                        <VideoJSPlayer
-                            src={videoUrl}
-                            title={videoTitle}
-                            controls={true}
-                            fluid={true}
-                            autoplay={false}
-                            className={styles.videoPlayer}
-                            onReady={handlePlayerReady}
-                            type={videoUrl.includes('/preview') ? 'text/html' : 'video/mp4'}
-                        />
-                    ) : (
-                        <div className={styles.noVideoSelected}>
-                            <p>No video selected</p>
-                        </div>
-                    )}
+                <div className={styles.playerWrapper}>                    {videoUrl ? (
+                    <VideoJSPlayer
+                        src={videoUrl}
+                        title={videoTitle}
+                        controls={true}
+                        fluid={true}
+                        autoplay={false}
+                        className={styles.videoPlayer}
+                        onReady={handlePlayerReady}
+                        type={videoUrl.includes('/preview') ? 'text/html' : 'video/mp4'}
+                        subtitle={currentVideo?.subtitle}
+                    />
+                ) : (
+                    <div className={styles.noVideoSelected}>
+                        <p>No video selected</p>
+                    </div>
+                )}
                 </div>
 
                 <div className={styles.videoControls}>
@@ -357,16 +414,24 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
                     Playlist ({filteredVideos.length} videos)
                 </h3>
 
-                    {enableSearch && (
+                    {/* {enableSearch && (
                         <div className={styles.searchContainer}>                            <input
                             type="text"
                             placeholder="Search videos, artists, or folders..."
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className={styles.searchInput}
+                            onChange={(e) => {
+                                try {
+                                    const newValue = e.target.value;
+                                    console.log('Search input changed to:', newValue);
+                                    setSearchTerm(newValue);
+                                } catch (error) {
+                                    console.error('Error handling search input:', error);
+                                }
+                            }}
+                            className={`${styles.searchInput} ${isSearching ? styles.searching : ''}`}
                         />
                         </div>
-                    )}
+                    )} */}
 
                     {availableFolders.length > 1 && (
                         <div className={styles.folderFilter}>
