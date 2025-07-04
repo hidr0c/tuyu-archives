@@ -30,16 +30,24 @@ export async function GET(req: NextRequest) {
           if (parts.length >= 2) {
             artist = parts[0].trim();
             title = parts.slice(1).join(" - ").trim();
-          }
+          } // Check if the subtitle file actually exists
+          const subtitleFile = file.replace(".webm", ".vtt");
+          const subtitlePath = path.join(videosDirectory, subtitleFile);
+          const subtitleExists = fs.existsSync(subtitlePath);
+
+          console.log(
+            `Subtitle for ${file}: ${subtitleFile} exists: ${subtitleExists}`
+          );
 
           return {
             video: `/Videos/videosxd/${encodeURIComponent(file)}`,
-            subtitle: `/Videos/videosxd/${encodeURIComponent(
-              file.replace(".webm", ".vtt")
-            )}`,
+            subtitle: subtitleExists
+              ? `/Videos/videosxd/${encodeURIComponent(subtitleFile)}`
+              : "",
             title,
             artist,
             folder: "Local Videos",
+            subtitleStatus: subtitleExists ? "available" : "missing",
           };
         });
     } catch (error) {

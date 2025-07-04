@@ -14,6 +14,7 @@ interface Video {
     artist?: string;
     folder: string;
     fileId?: string;
+    subtitleStatus?: string; // Added status field to track if subtitles are available
 }
 
 interface EnhancedVideoPlayerProps {
@@ -354,16 +355,15 @@ const EnhancedVideoPlayer: React.FC<EnhancedVideoPlayerProps> = ({
         <div className={styles.enhancedGoogleDrivePlayer}>
             <div className={styles.playerContainer}>
                 <div className={styles.playerWrapper}>                    {videoUrl ? (
-                    <VideoJSPlayer
-                        src={videoUrl}
+                    <VideoJSPlayer src={videoUrl}
                         title={videoTitle}
                         controls={true}
                         fluid={true}
                         autoplay={false}
                         className={styles.videoPlayer}
                         onReady={handlePlayerReady}
-                        type={videoUrl.includes('/preview') ? 'text/html' : 'video/mp4'}
-                        subtitle={currentVideo?.subtitle}
+                        type={videoUrl.includes('/preview') ? 'text/html' : 'video/webm'}
+                        subtitle={currentVideo?.subtitle || ''}
                     />
                 ) : (
                     <div className={styles.noVideoSelected}>

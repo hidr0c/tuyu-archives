@@ -1,22 +1,51 @@
 /* Custom subtitle styling */
 .video-js .vjs-text-track-display {
   pointer-events: none;
+  bottom: 40px !important; /* Đặt subtitle cao hơn so với mặc định */
 }
 
+/* Container of subtitle */
 .video-js .vjs-text-track-cue {
   background-color: rgba(0, 0, 0, 0.5);
-  padding: 4px 8px;
+  padding: 4px 12px;
   border-radius: 4px;
-  font-size: 18px;
+  font-size: 20px;
   font-family: Arial, sans-serif;
   font-weight: 600;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  max-width: 80% !important; /* Giới hạn chiều rộng subtitle */
+  margin: 0 auto; /* Canh giữa subtitle */
 }
 
-/* Add a thin border to make subtitles readable on any background */
+/* Actual text of subtitle */
 .video-js .vjs-text-track-cue > div {
   display: inline-block;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white !important;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 2px 8px;
   border-radius: 4px;
-  padding: 0 4px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Subtitle settings panel */
+.vjs-text-track-settings {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+  border-radius: 8px;
+  color: white !important;
+}
+
+/* Subtitle button */
+.video-js .vjs-subtitles-button .vjs-icon-placeholder:before,
+.video-js .vjs-subs-caps-button .vjs-icon-placeholder:before {
+  font-size: 1.3em;
+}
+
+/* Style for the subtitle button when subtitles are active */
+.video-js
+  .vjs-subtitles-button.vjs-menu-button-active
+  .vjs-icon-placeholder:before,
+.video-js
+  .vjs-subs-caps-button.vjs-menu-button-active
+  .vjs-icon-placeholder:before {
+  color: #ffcc00;
 }
