@@ -7,9 +7,15 @@ import Player from 'video.js/dist/types/player';
 // Import HTTP Streaming plugin cho subtitle
 import '@videojs/http-streaming';
 // Import subtitle utilities
-import { normalizeSubtitleUrl, loadSubtitleFromUrl } from '../utils/subtitleUtils';
+import {
+    normalizeSubtitleUrl,
+    loadSubtitleFromUrl,
+    createSubtitleBlobUrl,
+    addSubtitleToPlayer
+} from '../utils/subtitleUtils';
 
 interface VideoPlayerProps {
+    // Các thuộc tính hiện có giữ nguyên
     src: string;
     type?: string;
     title?: string;
@@ -18,8 +24,10 @@ interface VideoPlayerProps {
     responsive?: boolean;
     fluid?: boolean;
     className?: string;
-    subtitle?: string; // URL của tệp phụ đề
+    subtitle?: string;
     onReady?: (player: Player) => void;
+    playlist?: Array<{ src: string; subtitle?: string; title?: string }>;
+    onVideoChange?: (index: number) => void;
 }
 
 const VideoJSPlayer: React.FC<VideoPlayerProps> = ({
@@ -32,94 +40,31 @@ const VideoJSPlayer: React.FC<VideoPlayerProps> = ({
     fluid = true,
     className = '',
     subtitle,
-    onReady
+    onReady,
+    playlist = [],
+    onVideoChange
 }) => {
     const videoRef = useRef<HTMLDivElement>(null);
-    const playerRef = useRef<Player | null>(null);    // Xử lý việc load subtitles
-    const loadSubtitle = (player: Player, subtitleUrl: string) => {
+    const playerRef = useRef<Player | null>(null);
+    const currentIndex = useRef(0);
+    const loadSubtitle = async (player: Player, subtitleUrl: string) => {
         if (!subtitleUrl) {
             console.warn('No subtitle URL provided');
             return;
         }
 
         console.log('Loading subtitle:', subtitleUrl);
-        // Use the utility function to normalize the subtitle URL
-        let normalizedSubtitleUrl = normalizeSubtitleUrl(subtitleUrl);
+        const normalizedUrl = normalizeSubtitleUrl(subtitleUrl);
+        console.log('Normalized URL:', normalizedUrl);
 
-        console.log('Normalized subtitle URL:', normalizedSubtitleUrl);
+        const content = await loadSubtitleFromUrl(normalizedUrl);
+        console.log("Subtitle content preview:", content?.substring(0, 100));
 
-        // Kiểm tra URL subtitle có tồn tại không
-        fetch(normalizedSubtitleUrl)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                console.log('Subtitle file exists and is accessible');
-                return response.text();
-            })
-            .then(content => {
-                console.log('Subtitle content preview:', content.substring(0, 100));
-
-                if (content.trim().startsWith('WEBVTT')) {
-                    console.log('Valid WebVTT file detected');
-                } else {
-                    console.warn('Warning: Subtitle file does not start with WEBVTT header');
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching subtitle:', error);
-
-                // Try an alternative URL format as fallback
-                const fallbackUrl = subtitleUrl.startsWith('/')
-                    ? `${window.location.origin}${subtitleUrl}`
-                    : subtitleUrl;
-
-                if (fallbackUrl !== normalizedSubtitleUrl) {
-                    console.log('Trying fallback subtitle URL:', fallbackUrl);
-                    fetch(fallbackUrl)
-                        .then(response => {
-                            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-                            console.log('Fallback subtitle URL works!');
-                            return response.text();
-                        })
-                        .then(content => console.log('Fallback subtitle content preview:', content.substring(0, 100)))
-                        .catch(err => console.error('Fallback subtitle fetch also failed:', err));
-                }
-            });
-
-        try {
-            // Xóa tất cả subtitle track cũ
-            const textTracks = player.textTracks() as any;
-            for (let i = textTracks.length - 1; i >= 0; i--) {
-                const track = textTracks[i];
-                if (track && player.removeRemoteTextTrack) {
-                    player.removeRemoteTextTrack(track);
-                }
+        if (content) {
+            const blobUrl = createSubtitleBlobUrl(content);
+            if (blobUrl) {
+                addSubtitleToPlayer(player, blobUrl);
             }
-
-            console.log('Using normalized subtitle URL:', normalizedSubtitleUrl);
-
-            player.addRemoteTextTrack({
-                kind: 'subtitles',
-                src: normalizedSubtitleUrl,
-                srclang: 'vi',
-                label: 'Vietnamese',
-                default: true
-            }, false);
-
-            // Đảm bảo subtitle được hiển thị
-            setTimeout(() => {
-                const tracks = player.textTracks() as any;
-                for (let i = 0; i < tracks.length; i++) {
-                    if (tracks[i].kind === 'subtitles') {
-                        tracks[i].mode = 'showing';
-                        console.log('Successfully set subtitle track to showing mode');
-                        break;
-                    }
-                }
-            }, 1000);
-        } catch (err) {
-            console.error('Error loading subtitle:', err);
         }
     };
 
@@ -228,6 +173,41 @@ const VideoJSPlayer: React.FC<VideoPlayerProps> = ({
                 // Make sure subtitles are shown if available
                 if (subtitle) {
                     loadSubtitle(player, subtitle);
+                }
+                if (playlist && playlist.length > 0) {
+                    player.on('ended', () => {
+                        console.log('Video ended, playing next video in playlist');
+                        currentIndex.current = (currentIndex.current + 1) % playlist.length;
+                        const nextVideo = playlist[currentIndex.current];
+
+                        if (nextVideo && nextVideo.src) {
+                            console.log('Switching to next video:', nextVideo.src);
+
+                            // Remove all existing text tracks before adding a new one
+                            const tracks = player.remoteTextTracks();
+                            const trackArray = Array.from(tracks as any as TextTrack[]);
+                            let i = trackArray.length;
+                            while (i--) {
+                                player.removeRemoteTextTrack(trackArray[i]);
+                            }
+
+                            player.src({ src: nextVideo.src, type });
+
+                            if (nextVideo.subtitle) {
+                                loadSubtitle(player, nextVideo.subtitle);
+                            }
+
+                            player.play()?.catch(error => {
+                                console.error('Error playing next video:', error);
+                            });
+
+                            if (onVideoChange) {
+                                onVideoChange(currentIndex.current);
+                            }
+                        } else {
+                            console.error('Invalid next video data:', nextVideo);
+                        }
+                    });
                 }
 
                 if (onReady) onReady(player);
