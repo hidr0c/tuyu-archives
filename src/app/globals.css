@@ -37,7 +37,7 @@ body {
       rgba(20, 20, 40, 0.7),
       rgba(30, 30, 60, 0.7)
     ),
-    url("/tuyu-archives/background/Resting.jpg");
+    url("/background/Resting.jpg");
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
