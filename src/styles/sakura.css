@@ -13,7 +13,7 @@
   position: absolute;
   width: 20px;
   height: 20px;
-  background: url("/public/sakura.png") no-repeat center center;
+  background: url("/tuyu-archives/public/sakura.png") no-repeat center center;
   background-size: contain;
   animation: fall 5s linear infinite;
 }

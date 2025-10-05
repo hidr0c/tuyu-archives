@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  basePath: "/tuyu-archives",
   output: "standalone",
   typescript: {
     ignoreBuildErrors: true,
